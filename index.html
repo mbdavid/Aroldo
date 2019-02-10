@@ -3,6 +3,7 @@
 <head> 
     <meta charset="UTF-8" />
     <title>Aroldo Game</title>
+    <meta property="og:image" content="assets/print.png" /> 
     <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
     <style type="text/css">
         body {
@@ -60,6 +61,11 @@ function preload () {
 }
 
 function create () {
+
+    console.log('game', game)
+    console.log('this', this)
+
+    //if (!game.device.desktop){ game.input.onDown.add(gofull, this); } 
 
     //  Load both background
     bg0 = this.add.image(400, 300, 'sky');
