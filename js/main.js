@@ -1,5 +1,7 @@
 ﻿///<reference path="libs/phaser.d.ts" />
 
+import { MainScene } from '../js/scenes/mainScene.js';
+
 var DEBUG = location.href.toLowerCase().indexOf('debug') > 0;
 var MOBILE = navigator.userAgent.indexOf('Mobile') > 0;
 
@@ -18,9 +20,9 @@ var game = new Phaser.Game({
     },
     input: {
         keyboard: true,
-        mouse: false,
-        touch: false,
-        gamepad: true
+        gamepad: true,
+        mouse: true,
+        touch: true
     },
     render: {
         pixelArt: true,

@@ -1,6 +1,6 @@
 ﻿///<reference path="../libs/phaser.d.ts" />
 
-class MainScene extends Phaser.Scene {
+export class MainScene extends Phaser.Scene {
 
     constructor() {
         super('MainScene');
@@ -35,7 +35,7 @@ class MainScene extends Phaser.Scene {
         this.collect = this.sound.add('collect');
         this.over = this.sound.add('over');
 
-        // Score
+        // Score/Level
         this.scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
         this.levelText = this.add.text(620, 16, 'Level: 0', { fontSize: '32px', fill: '#000' });
 
@@ -52,9 +52,7 @@ class MainScene extends Phaser.Scene {
         this.platforms.create(750, 250, 'ground');
 
         // The player and its settings
-        this.player = this.physics.add.sprite(100, 450, 'aroldo');
-        this.player.fra
-
+        this.player = this.physics.add.sprite(100, 450, 'aroldo', 2);
 
         //  Player physics properties. Give the little guy a slight bounce.
         this.player.setBounce(0.2);
@@ -107,7 +105,7 @@ class MainScene extends Phaser.Scene {
         //  Collide the player and the cherry with the platforms
         this.physics.add.collider(this.player, this.platforms);
         this.physics.add.collider(this.cherries, this.platforms);
-        this.physics.add.collider(this.ghosts, this.platforms);
+        //this.physics.add.collider(this.ghosts, this.platforms);
 
         //  Checks to see if the player overlaps with any of the cherry, if he does call the collectCherry function
         this.physics.add.overlap(this.player, this.cherries, this.collectCherry, null, this);
@@ -121,23 +119,16 @@ class MainScene extends Phaser.Scene {
         if (this.gameOver) return;
 
         if (this.cursors.left.isDown) {
-
             this.player.setVelocityX(-160);
-
             this.player.anims.play('player_left', true);
         }
         else if (this.cursors.right.isDown) {
-
             this.player.setVelocityX(160);
-
             this.player.anims.play('player_right', true);
         }
         else {
-
             this.player.setVelocityX(0);
-
             this.player.anims.stop();
-            //player.anims.play('turn');
         }
 
         if ((this.cursors.up.isDown || this.cursors.space.isDown) && this.player.body.touching.down) {
