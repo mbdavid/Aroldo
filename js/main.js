@@ -7,8 +7,8 @@ var MOBILE = navigator.userAgent.indexOf('Mobile') > 0;
 
 var game = new Phaser.Game({
     type: Phaser.AUTO,
-    width: 800,
-    height: 600,
+    width: 500,
+    height: 400,
     parent: 'game',
     backgroundColor: "#000000",
     physics: {
@@ -28,5 +28,7 @@ var game = new Phaser.Game({
         pixelArt: true,
         antialias: false
     },
+    zoom: 2, // Since we're working with 16x16 pixel tiles, let's scale up the canvas by 3x
+    // pixelArt: true,
     scene: [MainScene]
 });

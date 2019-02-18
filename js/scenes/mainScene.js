@@ -1,5 +1,7 @@
 ﻿///<reference path="../libs/phaser.d.ts" />
 
+import { PlayerObject } from '../objects/playerObject.js';
+
 export class MainScene extends Phaser.Scene {
 
     constructor() {
@@ -26,8 +28,8 @@ export class MainScene extends Phaser.Scene {
         this.level = 0;
 
         // Load both backgrounds
-        this.background1 = this.add.image(400, 300, 'sky');
-        this.background2 = this.add.image(400, 300, 'sky2');
+        this.background1 = this.add.image(200, 150, 'sky');
+        this.background2 = this.add.image(200, 150, 'sky2');
 
         this.background2.visible = false;
 
@@ -35,44 +37,23 @@ export class MainScene extends Phaser.Scene {
         this.collect = this.sound.add('collect');
         this.over = this.sound.add('over');
 
+        // Adding player
+        this.player = new PlayerObject(this);
+
         // Score/Level
-        this.scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000' });
-        this.levelText = this.add.text(620, 16, 'Level: 0', { fontSize: '32px', fill: '#000' });
+        this.scoreText = this.add.text(8, 8, 'Score: 0', { fontSize: '16px', fill: '#000' });
+        this.levelText = this.add.text(410, 8, 'Level: 0', { fontSize: '16px', fill: '#000' });
 
         //  The platforms group contains the ground and the 2 ledges we can jump on
         this.platforms = this.physics.add.staticGroup();
 
         //  Here we create the ground.
-        this.platforms.create(200, 585, 'ground'); //.setScale(2).refreshBody();
-        this.platforms.create(600, 585, 'ground'); //.setScale(2).refreshBody();
+        this.platforms.create(250, 400 - 8, 'ground');
 
         //  Now let's create some ledges
-        this.platforms.create(200, 420, 'ground');
-        this.platforms.create(50, 250, 'ground');
-        this.platforms.create(750, 250, 'ground');
-
-        // The player and its settings
-        this.player = this.physics.add.sprite(100, 450, 'aroldo', 2);
-
-        //  Player physics properties. Give the little guy a slight bounce.
-        this.player.setBounce(0.2);
-        this.player.setCollideWorldBounds(true);
-        this.player.setScale(2);
-
-        //  Our player animations, turning, walking left and walking right.
-        this.anims.create({
-            key: 'player_left',
-            frames: this.anims.generateFrameNumbers('aroldo', { start: 0, end: 1 }),
-            frameRate: 10,
-            repeat: -1
-        });
-
-        this.anims.create({
-            key: 'player_right',
-            frames: this.anims.generateFrameNumbers('aroldo', { start: 2, end: 3 }),
-            frameRate: 10,
-            repeat: -1
-        });
+        this.platforms.create(-100, 170, 'ground');
+        this.platforms.create(0, 280, 'ground');
+        this.platforms.create(580, 190, 'ground');
 
         this.anims.create({
             key: 'ghost_move',
@@ -81,21 +62,17 @@ export class MainScene extends Phaser.Scene {
             repeat: -1
         });
 
-        //  Input Events
-        this.cursors = this.input.keyboard.createCursorKeys();
-
         //  Some cherries to collect, 12 in total, evenly spaced 70 pixels apart along the x axis
         this.cherries = this.physics.add.group({
             key: 'cherry',
-            repeat: 8,
-            setXY: { x: 30, y: 0, stepX: 90 }
+            repeat: 6,
+            setXY: { x: 30, y: 0, stepX: 70 }
         });
 
         this.cherries.children.iterate(function (child) {
 
             //  Give each cherry a slightly different bounce
-            child.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
-            child.setScale(2);
+            child.setBounceY(Phaser.Math.FloatBetween(0.3, 0.6));
 
         });
 
@@ -103,15 +80,17 @@ export class MainScene extends Phaser.Scene {
         this.ghosts = this.physics.add.group();
 
         //  Collide the player and the cherry with the platforms
-        this.physics.add.collider(this.player, this.platforms);
+        this.physics.add.collider(this.player.sprite, this.platforms);
         this.physics.add.collider(this.cherries, this.platforms);
-        //this.physics.add.collider(this.ghosts, this.platforms);
+        this.physics.add.collider(this.ghosts, this.platforms);
 
         //  Checks to see if the player overlaps with any of the cherry, if he does call the collectCherry function
-        this.physics.add.overlap(this.player, this.cherries, this.collectCherry, null, this);
+        this.physics.add.overlap(this.player.sprite, this.cherries, this.collectCherry, null, this);
 
-        this.physics.add.collider(this.player, this.ghosts, this.hitGhost, null, this);
+        this.physics.add.collider(this.player.sprite, this.ghosts, this.hitGhost, null, this);
 
+        // create cursor listener
+        this.cursors = this.input.keyboard.createCursorKeys();
     }
 
     update() {
@@ -119,20 +98,17 @@ export class MainScene extends Phaser.Scene {
         if (this.gameOver) return;
 
         if (this.cursors.left.isDown) {
-            this.player.setVelocityX(-160);
-            this.player.anims.play('player_left', true);
+            this.player.moveLeft();
         }
         else if (this.cursors.right.isDown) {
-            this.player.setVelocityX(160);
-            this.player.anims.play('player_right', true);
+            this.player.moveRight();
         }
         else {
-            this.player.setVelocityX(0);
-            this.player.anims.stop();
+            this.player.stopMoving();
         }
 
-        if ((this.cursors.up.isDown || this.cursors.space.isDown) && this.player.body.touching.down) {
-            this.player.setVelocityY(-330);
+        if ((this.cursors.up.isDown || this.cursors.space.isDown) && this.player.sprite.body.touching.down) {
+            this.player.jump();
         }
 
     }
@@ -165,12 +141,10 @@ export class MainScene extends Phaser.Scene {
 
             var ghost = this.ghosts.create(x, 16, 'ghost');
             ghost.setBounce(1);
-            ghost.setScale(1.5);
             ghost.setCollideWorldBounds(true);
             ghost.setVelocity(Phaser.Math.Between(-200, 200), 20);
             ghost.allowGravity = false;
             ghost.anims.play('ghost_move', true);
-
         }
 
     }
@@ -178,13 +152,11 @@ export class MainScene extends Phaser.Scene {
     hitGhost(player, ghost) {
 
         this.physics.pause();
+
         this.over.play();
+        this.player.die();
 
-        this.player.setTint(0xff0000);
-
-        //player.anims.play('turn');
-
-        this.add.text(320, 320, 'Game Over', { fontSize: '32px', fill: '#000' });
+        this.add.text(180, 180, 'Game Over', { fontSize: '32px', fill: '#000' });
 
         this.gameOver = true;
     }
